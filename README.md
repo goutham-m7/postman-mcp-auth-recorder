@@ -112,7 +112,7 @@ Treat the issue author's version observations cautiously: a later comment says t
 - Diagnosis uses server-side validation facts. A remote server's undifferentiated 401 alone cannot establish token expiry versus audience versus unknown bearer.
 - The reported zero counts exact observed synthetic credentials across generated exports. It is not a universal DLP guarantee. The primary protection is recording no payloads; an attacker deliberately placing credential fragments in safe numeric/boolean fields is outside this schema's input model.
 - The measured latency is from receiving a failed local HTTP response to producing the in-process classification, not OAuth duration, app connection time, or human time saved. No comparative speedup claim.
-- In-memory retention, 100 clients/runs, 1,000 pending codes/tokens/events per run, 16 KiB bodies, and 5-second socket timeout. Restart to reset desktop correlation and capacity. Manual Ctrl-C capture is intended after requests finish, not as a transactionally complete multi-client packet capture.
+- In-memory retention: 100 registered clients and 100 recorder runs; 1,000 pending codes and 1,000 retained tokens per authority; 1,000 events per run; 16 KiB bodies; 5-second socket timeout. Restart to reset desktop correlation and capacity. Manual Ctrl-C capture is intended after requests finish, not as a transactionally complete multi-client packet capture.
 - No refresh grant, confidential clients, revocation, real consent UI, persisted sessions, streaming/SSE, OAuth Basic authentication, or proprietary desktop patch. The public Postman MCP server is not the desktop MCP-client code, so this project does not claim a directly mergeable server fix.
 
 ## For Postman engineers
