@@ -1,0 +1,9 @@
+{
+  "name": "postman-mcp-auth-recorder",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Offline MCP OAuth boundary reproduction with Postman's public Newman runner",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "devDependencies": { "newman": "6.2.3" }
+}
