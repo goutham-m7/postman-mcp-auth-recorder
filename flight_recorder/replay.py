@@ -41,13 +41,18 @@ class Wire:
     def send(self, method, path, data=None, authorization=None, form=False):
         if not path.startswith("/") or path.startswith("//"):
             raise ValueError("Relative fixture path required")
-        headers = {"X-Recorder-Run": self.run, "Accept": "application/json, text/event-stream"}
+        headers = {
+            "X-Recorder-Run": self.run,
+            "Accept": "application/json, text/event-stream",
+        }
         if authorization is not None:
             headers["Authorization"] = authorization
         body = None
         if data is not None:
             body = (urlencode(data) if form else json.dumps(data)).encode()
-            headers["Content-Type"] = "application/x-www-form-urlencoded" if form else "application/json"
+            headers["Content-Type"] = (
+                "application/x-www-form-urlencoded" if form else "application/json"
+            )
         request = Request(self.base + path, body, headers, method=method)
         try:
             response = self.opener.open(request, timeout=5)
@@ -62,7 +67,9 @@ class Wire:
 
 def require(actual, expected, step):
     if actual != expected:
-        raise RuntimeError(f"Unexpected HTTP status at {step}: expected {expected}, got {actual}")
+        raise RuntimeError(
+            f"Unexpected HTTP status at {step}: expected {expected}, got {actual}"
+        )
 
 
 def run_case(case):
@@ -76,41 +83,70 @@ def run_case(case):
         match = re.search(r'resource_metadata="([^"]+)"', headers["WWW-Authenticate"])
         if match is None or not match[1].startswith(lab.base + "/"):
             raise RuntimeError("Invalid discovery challenge")
-        status, _, metadata = wire.send("GET", match[1][len(lab.base):])
+        status, _, metadata = wire.send("GET", match[1][len(lab.base) :])
         require(status, 200, "resource discovery")
-        if metadata["resource"] != lab.base + "/mcp" or metadata["authorization_servers"] != [lab.base]:
+        if metadata["resource"] != lab.base + "/mcp" or metadata[
+            "authorization_servers"
+        ] != [lab.base]:
             raise RuntimeError("Unexpected resource metadata")
-        status, _, metadata = wire.send("GET", "/.well-known/oauth-authorization-server")
+        status, _, metadata = wire.send(
+            "GET", "/.well-known/oauth-authorization-server"
+        )
         require(status, 200, "authorization discovery")
         if metadata["issuer"] != lab.base:
             raise RuntimeError("Unexpected issuer")
-        status, _, client = wire.send("POST", "/oauth/register", {
-            "redirect_uris": ["http://127.0.0.1/callback"], "token_endpoint_auth_method": "none"})
+        status, _, client = wire.send(
+            "POST",
+            "/oauth/register",
+            {
+                "redirect_uris": ["http://127.0.0.1/callback"],
+                "token_endpoint_auth_method": "none",
+            },
+        )
         require(status, 201, "registration")
         verifier, state = secrets.token_urlsafe(48), secrets.token_urlsafe(24)
         sensitive = {verifier, state, client["client_id"]}
-        params = {"client_id": client["client_id"], "redirect_uri": "http://127.0.0.1/callback",
-                  "response_type": "code", "resource": lab.base + "/mcp", "scope": "mcp:connect" if case == "insufficient_scope" else "mcp:echo",
-                  "state": state, "code_challenge_method": "S256", "code_challenge": challenge(verifier)}
+        params = {
+            "client_id": client["client_id"],
+            "redirect_uri": "http://127.0.0.1/callback",
+            "response_type": "code",
+            "resource": lab.base + "/mcp",
+            "scope": "mcp:connect" if case == "insufficient_scope" else "mcp:echo",
+            "state": state,
+            "code_challenge_method": "S256",
+            "code_challenge": challenge(verifier),
+        }
         status, headers, _ = wire.send("GET", "/oauth/authorize?" + urlencode(params))
         require(status, 302, "authorization")
         callback = urlsplit(headers["Location"])
-        if callback.scheme + "://" + callback.netloc + callback.path != params["redirect_uri"]:
+        if (
+            callback.scheme + "://" + callback.netloc + callback.path
+            != params["redirect_uri"]
+        ):
             raise RuntimeError("Wrong callback target")
         values = parse_qs(callback.query)
         if values.get("state") != [state]:
             raise RuntimeError("OAuth state mismatch")
         code = values["code"][0]
         sensitive.add(code)
-        data = {"client_id": client["client_id"], "redirect_uri": params["redirect_uri"],
-                "grant_type": "authorization_code", "code": code, "code_verifier": verifier,
-                "resource": params["resource"]}
+        data = {
+            "client_id": client["client_id"],
+            "redirect_uri": params["redirect_uri"],
+            "grant_type": "authorization_code",
+            "code": code,
+            "code_verifier": verifier,
+            "resource": params["resource"],
+        }
         if case == "pkce_mismatch":
             data["code_verifier"] = "b" * 43
         if case == "resource_mismatch":
             data["resource"] = lab.base + "/wrong-resource"
         status, _, token = wire.send("POST", "/oauth/token", data, form=True)
-        require(status, 400 if case in {"pkce_mismatch", "resource_mismatch"} else 200, "token exchange")
+        require(
+            status,
+            400 if case in {"pkce_mismatch", "resource_mismatch"} else 200,
+            "token exchange",
+        )
         if status == 200:
             sensitive.add(token["access_token"])
             authorization = "Bearer " + token["access_token"]
@@ -123,18 +159,57 @@ def run_case(case):
             if case == "expired_token":
                 offset[0] += 61
             status, _, _ = wire.send("POST", "/mcp", INITIALIZE, authorization)
-            require(status, 200 if case == "valid" else 403 if case == "insufficient_scope" else 401, "post-token initialize")
+            require(
+                status,
+                200
+                if case == "valid"
+                else 403
+                if case == "insufficient_scope"
+                else 401,
+                "post-token initialize",
+            )
             if case == "valid":
-                require(wire.send("POST", "/mcp", {"jsonrpc": "2.0", "method": "notifications/initialized"}, authorization)[0], 202, "initialized notification")
-                require(wire.send("POST", "/mcp", {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}, authorization)[0], 200, "tool discovery")
+                require(
+                    wire.send(
+                        "POST",
+                        "/mcp",
+                        {"jsonrpc": "2.0", "method": "notifications/initialized"},
+                        authorization,
+                    )[0],
+                    202,
+                    "initialized notification",
+                )
+                require(
+                    wire.send(
+                        "POST",
+                        "/mcp",
+                        {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+                        authorization,
+                    )[0],
+                    200,
+                    "tool discovery",
+                )
                 status, _, echoed = wire.send("POST", "/mcp", ECHO, authorization)
                 require(status, 200, "echo")
-                if echoed["result"]["content"] != [{"type": "text", "text": "synthetic hello"}]:
-                    raise RuntimeError("Echo did not return the expected synthetic payload")
+                if echoed["result"]["content"] != [
+                    {"type": "text", "text": "synthetic hello"}
+                ]:
+                    raise RuntimeError(
+                        "Echo did not return the expected synthetic payload"
+                    )
         events = lab.recorder.events(case)
         diagnosis = diagnose(events)
-        latency = round((perf_counter() - wire.failure_received) * 1000, 3) if case != "valid" else None
+        latency = (
+            round((perf_counter() - wire.failure_received) * 1000, 3)
+            if case != "valid"
+            else None
+        )
         expected = CASES[case]
-        return {"case": case, "events": events, "diagnosis": diagnosis,
-                "matches_expectation": (diagnosis["reason"], diagnosis["boundary"]) == expected,
-                "failure_to_diagnosis_ms": latency}, sensitive
+        return {
+            "case": case,
+            "events": events,
+            "diagnosis": diagnosis,
+            "matches_expectation": (diagnosis["reason"], diagnosis["boundary"])
+            == expected,
+            "failure_to_diagnosis_ms": latency,
+        }, sensitive

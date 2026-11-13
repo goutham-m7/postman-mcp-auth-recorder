@@ -5,7 +5,18 @@ import pytest
 from flight_recorder.replay import CASES, run_case
 
 
-@pytest.mark.parametrize("case", ["valid", "missing_bearer", "invalid_bearer", "expired_token", "insufficient_scope", "pkce_mismatch", "resource_mismatch"])
+@pytest.mark.parametrize(
+    "case",
+    [
+        "valid",
+        "missing_bearer",
+        "invalid_bearer",
+        "expired_token",
+        "insufficient_scope",
+        "pkce_mismatch",
+        "resource_mismatch",
+    ],
+)
 def test_seeded_fault_localization(case):
     result, secrets = run_case(case)
     assert result["diagnosis"]["reason"] == CASES[case][0]
@@ -20,7 +31,10 @@ def test_seeded_fault_localization(case):
 def test_reported_symptom_and_valid_timeline_share_oauth_prefix():
     valid, _ = run_case("valid")
     broken, _ = run_case("missing_bearer")
-    clean = lambda events: [{k: v for k, v in e.items() if k != "elapsed_ms"} for e in events]
+
+    def clean(events):
+        return [{k: v for k, v in e.items() if k != "elapsed_ms"} for e in events]
+
     assert clean(valid["events"][:6]) == clean(broken["events"][:6])
     assert valid["events"][6]["authorization_present"] is True
     assert broken["events"][6]["authorization_present"] is False

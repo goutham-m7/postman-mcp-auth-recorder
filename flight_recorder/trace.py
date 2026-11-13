@@ -4,16 +4,44 @@ from dataclasses import asdict, dataclass
 from threading import RLock
 from time import monotonic
 
-PATHS = frozenset({"/mcp", "/oauth/register", "/oauth/authorize", "/oauth/token",
-                   "/.well-known/oauth-protected-resource",
-                   "/.well-known/oauth-protected-resource/mcp",
-                   "/.well-known/oauth-authorization-server"})
-REASONS = frozenset({"challenge", "discovery", "registered", "authorized", "token_issued",
-                     "missing_authorization", "invalid_token", "expired_token",
-                     "insufficient_scope", "pkce_mismatch", "resource_mismatch",
-                     "invalid_grant", "invalid_client", "invalid_redirect", "invalid_scope",
-                     "malformed", "initialized", "notification", "tools_listed", "echo",
-                     "rpc_error", "method_not_allowed", "unsupported_version"})
+PATHS = frozenset(
+    {
+        "/mcp",
+        "/oauth/register",
+        "/oauth/authorize",
+        "/oauth/token",
+        "/.well-known/oauth-protected-resource",
+        "/.well-known/oauth-protected-resource/mcp",
+        "/.well-known/oauth-authorization-server",
+    }
+)
+REASONS = frozenset(
+    {
+        "challenge",
+        "discovery",
+        "registered",
+        "authorized",
+        "token_issued",
+        "missing_authorization",
+        "invalid_token",
+        "expired_token",
+        "insufficient_scope",
+        "pkce_mismatch",
+        "resource_mismatch",
+        "invalid_grant",
+        "invalid_client",
+        "invalid_redirect",
+        "invalid_scope",
+        "malformed",
+        "initialized",
+        "notification",
+        "tools_listed",
+        "echo",
+        "rpc_error",
+        "method_not_allowed",
+        "unsupported_version",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -42,8 +70,17 @@ class Recorder:
             events = self._runs.setdefault(run, [])
             if len(events) >= 1000:
                 raise ValueError("Event capacity reached; restart the local lab")
-            events.append(Event(len(events) + 1, round((monotonic() - self._start) * 1000, 3),
-                                method, path, status, reason, bool(authorization_present)))
+            events.append(
+                Event(
+                    len(events) + 1,
+                    round((monotonic() - self._start) * 1000, 3),
+                    method,
+                    path,
+                    status,
+                    reason,
+                    bool(authorization_present),
+                )
+            )
 
     def events(self, run):
         with self._lock:
@@ -57,8 +94,17 @@ def diagnose(events):
         if event["reason"] == "token_issued":
             issued = True
         if event["status"] >= 400 and event["reason"] != "challenge":
-            return {"reason": event["reason"],
-                    "boundary": f'{event["method"]} {event["path"]}',
-                    "token_issued": issued, "detected_at_ms": event["elapsed_ms"]}
-    return {"reason": "pass" if any(e["reason"] == "echo" for e in events) else "incomplete",
-            "boundary": None, "token_issued": issued, "detected_at_ms": None}
+            return {
+                "reason": event["reason"],
+                "boundary": f"{event['method']} {event['path']}",
+                "token_issued": issued,
+                "detected_at_ms": event["elapsed_ms"],
+            }
+    return {
+        "reason": "pass"
+        if any(e["reason"] == "echo" for e in events)
+        else "incomplete",
+        "boundary": None,
+        "token_issued": issued,
+        "detected_at_ms": None,
+    }

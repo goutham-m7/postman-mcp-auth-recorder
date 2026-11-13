@@ -28,6 +28,7 @@ def test_runs_are_isolated_and_return_copies():
 
 def test_trace_rejects_unbounded_or_sensitive_fields():
     import pytest
+
     recorder = Recorder()
     for field in ("/mcp?access_token=secret", "/secret"):
         with pytest.raises(ValueError):

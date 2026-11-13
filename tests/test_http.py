@@ -13,7 +13,9 @@ def lab():
 
 
 def test_discovery_documents_use_bound_address_not_host(lab):
-    status, _, data = request(lab.base, "GET", "/.well-known/oauth-protected-resource/mcp")
+    status, _, data = request(
+        lab.base, "GET", "/.well-known/oauth-protected-resource/mcp"
+    )
     assert status == 200
     assert data["resource"] == lab.base + "/mcp"
     assert data["authorization_servers"] == [lab.base]
@@ -47,19 +49,36 @@ def test_missing_header_after_token_is_not_discovery(lab):
     assert lab.recorder.events("test")[-1]["reason"] == "missing_authorization"
 
 
-@pytest.mark.parametrize("headers", [{"Host": "evil.invalid"}, {"Origin": "https://evil.invalid"}])
+@pytest.mark.parametrize(
+    "headers", [{"Host": "evil.invalid"}, {"Origin": "https://evil.invalid"}]
+)
 def test_browser_origin_and_dns_rebinding_are_denied(lab, headers):
-    assert request(lab.base, "GET", "/.well-known/oauth-authorization-server", headers=headers)[0] == 403
+    assert (
+        request(
+            lab.base, "GET", "/.well-known/oauth-authorization-server", headers=headers
+        )[0]
+        == 403
+    )
 
 
 def test_duplicate_form_parameters_are_rejected(lab):
-    status, _, _ = request(lab.base, "GET", "/oauth/authorize?" + urlencode([("state", "one"), ("state", "two")]))
+    status, _, _ = request(
+        lab.base,
+        "GET",
+        "/oauth/authorize?" + urlencode([("state", "one"), ("state", "two")]),
+    )
     assert status == 400
 
 
 def test_bad_registration_and_json_shapes_fail_closed(lab):
-    for data in (["not", "object"], {"redirect_uris": ["https://evil.invalid/callback"]},
-                 {"redirect_uris": ["http://127.0.0.1/callback"], "token_endpoint_auth_method": "client_secret_basic"}):
+    for data in (
+        ["not", "object"],
+        {"redirect_uris": ["https://evil.invalid/callback"]},
+        {
+            "redirect_uris": ["http://127.0.0.1/callback"],
+            "token_endpoint_auth_method": "client_secret_basic",
+        },
+    ):
         assert request(lab.base, "POST", "/oauth/register", data)[0] == 400
 
 

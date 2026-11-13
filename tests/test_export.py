@@ -13,7 +13,13 @@ def test_exports_never_contain_observed_credentials(tmp_path):
     valid, secrets = run_case("valid")
     broken, more = run_case("missing_bearer")
     paths = export_bundle(tmp_path, [valid, broken], secrets | more)
-    assert {p.name for p in paths} == {"report.json", "timeline.html", "postman.collection.json", "repro.json", "checksums.json"}
+    assert {p.name for p in paths} == {
+        "report.json",
+        "timeline.html",
+        "postman.collection.json",
+        "repro.json",
+        "checksums.json",
+    }
     exported = "".join(path.read_text() for path in paths)
     assert all(secret not in exported for secret in secrets | more)
     report = json.loads((tmp_path / "report.json").read_text())
@@ -45,13 +51,33 @@ def test_collection_replays_through_public_newman_runner(tmp_path):
     with LabServer() as lab:
         path = tmp_path / "collection.json"
         path.write_text(json.dumps(collection(lab.base)))
-        result = subprocess.run(["node", str(runner), "run", str(path), "--reporters", "cli", "--reporter-cli-no-console"],
-                                capture_output=True, text=True, timeout=30)
+        result = subprocess.run(
+            [
+                "node",
+                str(runner),
+                "run",
+                str(path),
+                "--reporters",
+                "cli",
+                "--reporter-cli-no-console",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
         assert result.returncode == 0, result.stdout + result.stderr
         events = lab.recorder.events("collection")
         assert [event["reason"] for event in events] == [
-            "challenge", "discovery", "discovery", "registered", "authorized",
-            "token_issued", "initialized", "notification", "tools_listed", "echo",
+            "challenge",
+            "discovery",
+            "discovery",
+            "registered",
+            "authorized",
+            "token_issued",
+            "initialized",
+            "notification",
+            "tools_listed",
+            "echo",
             "missing_authorization",
         ]
         assert events[6]["authorization_present"] is True
