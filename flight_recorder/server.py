@@ -20,6 +20,19 @@ def parameters(raw):
     return {key: value[0] for key, value in parsed.items()}
 
 
+def unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("Repeated JSON field")
+        result[key] = value
+    return result
+
+
+def reject_nonfinite(_):
+    raise ValueError("JSON numbers must be finite")
+
+
 class Handler(BaseHTTPRequestHandler):
     def setup(self):
         super().setup()
@@ -69,7 +82,8 @@ class Handler(BaseHTTPRequestHandler):
         raw = self.rfile.read(length)
         if len(raw) != length:
             raise ValueError("Truncated body")
-        data = parameters(raw.decode("utf-8")) if form else json.loads(raw)
+        data = parameters(raw.decode("utf-8")) if form else json.loads(
+            raw, object_pairs_hook=unique_object, parse_constant=reject_nonfinite)
         if not isinstance(data, dict):
             raise ValueError("Object required")
         return data
@@ -136,7 +150,7 @@ class Handler(BaseHTTPRequestHandler):
             reason = str(error)
             public = "invalid_grant" if self.path_only == "/oauth/token" else "invalid_request"
             return self.reply(400, {"error": public}, reason=reason)
-        except (ValueError, UnicodeError):
+        except (ValueError, UnicodeError, RecursionError):
             return self.reply(400, {"error": "invalid_request"}, reason="malformed")
 
 
