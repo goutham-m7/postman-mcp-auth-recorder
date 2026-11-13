@@ -1,0 +1,12 @@
+MCP Auth Flight Recorder | synthetic local HTTP; Postman desktop not tested
+valid                pass                     echo returned synthetic hello
+missing_bearer       missing_authorization    POST /mcp
+invalid_bearer       invalid_token            POST /mcp
+expired_token        expired_token            POST /mcp
+insufficient_scope   insufficient_scope       POST /mcp
+pkce_mismatch        pkce_mismatch            POST /oauth/token
+resource_mismatch    resource_mismatch        POST /oauth/token
+Fault localization: 6/6
+Raw credentials in exported artifacts: 0
+Max failed-response-to-diagnosis: 0.022 ms (local classification, not human debugging time)
+Bundle: artifacts/ [report.json, timeline.html, postman.collection.json, repro.json, checksums.json]

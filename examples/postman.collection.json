@@ -1,0 +1,597 @@
+{
+  "info": {
+    "description": "Local synthetic consent only. Not a native Postman MCP-client test. Runtime credentials use local variables; do not export runner wire reports.",
+    "name": "MCP Auth Flight Recorder \u2014 synthetic #14119 wire reproduction",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/"
+  },
+  "item": [
+    {
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const verifier = pm.variables.replaceIn(\"{{$randomUUID}}{{$randomUUID}}\").replace(/-/g, \"\");",
+              "pm.variables.set(\"verifier\", verifier);",
+              "pm.variables.set(\"state\", pm.variables.replaceIn(\"{{$randomUUID}}\"));",
+              "const crypto = require(\"crypto-js\");",
+              "pm.variables.set(\"challenge\", crypto.SHA256(verifier).toString(crypto.enc.Base64).replace(/=/g, \"\").replace(/\\+/g, \"-\").replace(/\\//g, \"_\"));"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+              "pm.test(\"Resource metadata challenge\", () => pm.expect(pm.response.headers.get(\"WWW-Authenticate\")).to.include(\"resource_metadata=\"));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "01 Anonymous MCP challenge",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          },
+          "raw": "{\"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"initialize\", \"params\": {\"protocolVersion\": \"2025-06-18\", \"capabilities\": {}, \"clientInfo\": {\"name\": \"auth-flight-recorder\", \"version\": \"0.1.0\"}}}"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "method": "POST",
+        "url": "{{base_url}}/mcp"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Resource binding\", () => pm.expect(pm.response.json().resource).to.eql(pm.variables.get(\"base_url\") + \"/mcp\"));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "02 Resource discovery",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          }
+        ],
+        "method": "GET",
+        "url": "{{base_url}}/.well-known/oauth-protected-resource/mcp"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"PKCE S256 advertised\", () => pm.expect(pm.response.json().code_challenge_methods_supported).to.include(\"S256\"));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "03 Authorization discovery",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          }
+        ],
+        "method": "GET",
+        "url": "{{base_url}}/.well-known/oauth-authorization-server"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.variables.set(\"client_id\", pm.response.json().client_id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "04 Register synthetic public client",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          },
+          "raw": "{\"redirect_uris\": [\"http://127.0.0.1/callback\"], \"token_endpoint_auth_method\": \"none\"}"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "method": "POST",
+        "url": "{{base_url}}/oauth/register"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 302\", () => pm.response.to.have.status(302));",
+              "const location = pm.response.headers.get(\"Location\");",
+              "const code = decodeURIComponent(location.match(/[?&]code=([^&]+)/)[1]);",
+              "const state = decodeURIComponent(location.match(/[?&]state=([^&]+)/)[1]);",
+              "pm.test(\"State matches\", () => pm.expect(state).to.eql(pm.variables.get(\"state\")));",
+              "pm.variables.set(\"code\", code);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "05 Synthetic consent (redirect not followed)",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          }
+        ],
+        "method": "GET",
+        "url": "{{base_url}}/oauth/authorize?client_id={{client_id}}&redirect_uri=http://127.0.0.1/callback&response_type=code&resource={{base_url}}/mcp&scope=mcp:echo&state={{state}}&code_challenge_method=S256&code_challenge={{challenge}}"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.variables.set(\"access_token\", pm.response.json().access_token);",
+              "pm.test(\"Token response not cached\", () => pm.expect(pm.response.headers.get(\"Cache-Control\")).to.eql(\"no-store\"));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "06 Exchange code with verifier",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "authorization_code"
+            },
+            {
+              "key": "client_id",
+              "value": "{{client_id}}"
+            },
+            {
+              "key": "redirect_uri",
+              "value": "http://127.0.0.1/callback"
+            },
+            {
+              "key": "resource",
+              "value": "{{base_url}}/mcp"
+            },
+            {
+              "key": "code",
+              "value": "{{code}}"
+            },
+            {
+              "key": "code_verifier",
+              "value": "{{verifier}}"
+            }
+          ]
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "method": "POST",
+        "url": "{{base_url}}/oauth/token"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Initialize result\", () => pm.expect(pm.response.json().result.protocolVersion).to.eql(\"2025-06-18\"));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "07 Valid bearer initialize",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          },
+          "raw": "{\"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"initialize\", \"params\": {\"protocolVersion\": \"2025-06-18\", \"capabilities\": {}, \"clientInfo\": {\"name\": \"auth-flight-recorder\", \"version\": \"0.1.0\"}}}"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "method": "POST",
+        "url": "{{base_url}}/mcp"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 202\", () => pm.response.to.have.status(202));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "08 Initialized notification",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          },
+          "raw": "{\"jsonrpc\": \"2.0\", \"method\": \"notifications/initialized\"}"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "method": "POST",
+        "url": "{{base_url}}/mcp"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Echo available\", () => pm.expect(pm.response.json().result.tools[0].name).to.eql(\"echo\"));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "09 List echo tool",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          },
+          "raw": "{\"jsonrpc\": \"2.0\", \"id\": 2, \"method\": \"tools/list\"}"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "method": "POST",
+        "url": "{{base_url}}/mcp"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Echo exact payload\", () => pm.expect(pm.response.json().result.content[0].text).to.eql(\"synthetic hello\"));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "10 Protected echo",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          },
+          "raw": "{\"jsonrpc\": \"2.0\", \"id\": 3, \"method\": \"tools/call\", \"params\": {\"name\": \"echo\", \"arguments\": {\"text\": \"synthetic hello\"}}}"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "method": "POST",
+        "url": "{{base_url}}/mcp"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+              "pm.test(\"MCP denied after token issued\", () => pm.expect(pm.response.json().error).to.eql(\"invalid_token\"));",
+              "[\"access_token\", \"code\", \"verifier\", \"state\", \"client_id\", \"challenge\"].forEach(k => pm.variables.unset(k));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "11 Issue 14119 wire symptom: deliberately omit bearer",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "body": {
+          "mode": "raw",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          },
+          "raw": "{\"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"initialize\", \"params\": {\"protocolVersion\": \"2025-06-18\", \"capabilities\": {}, \"clientInfo\": {\"name\": \"auth-flight-recorder\", \"version\": \"0.1.0\"}}}"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "method": "POST",
+        "url": "{{base_url}}/mcp"
+      }
+    },
+    {
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Localized missing header\", () => pm.expect(pm.response.json().events.slice(-1)[0].reason).to.eql(\"missing_authorization\"));"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "name": "12 Fetch token-safe timeline",
+      "protocolProfileBehavior": {
+        "followRedirects": false
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "X-Recorder-Run",
+            "value": "{{run_id}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          }
+        ],
+        "method": "GET",
+        "url": "{{base_url}}/recorder/timeline"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8765"
+    },
+    {
+      "key": "run_id",
+      "value": "collection"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "collection": "postman.collection.json",
+  "command": "python3 -m flight_recorder demo --case missing_bearer",
+  "desktop_verified": false,
+  "expected": {
+    "authorization_present": false,
+    "post_token_initialize": 401,
+    "reason": "missing_authorization",
+    "token_exchange": 200
+  },
+  "issue": "https://github.com/postmanlabs/postman-app-support/issues/14119",
+  "kind": "synthetic-wire-symptom",
+  "server_command": "python3 -m flight_recorder serve --port 8765"
+}

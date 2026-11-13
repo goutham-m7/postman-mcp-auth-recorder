@@ -1,0 +1,554 @@
+{
+  "metrics": {
+    "localized_faults": 6,
+    "max_failure_to_diagnosis_ms": 0.022,
+    "raw_credentials_in_exports": 0,
+    "seeded_faults": 6
+  },
+  "provenance": "synthetic local client; not Postman desktop",
+  "scenarios": [
+    {
+      "case": "valid",
+      "diagnosis": {
+        "boundary": null,
+        "detected_at_ms": null,
+        "reason": "pass",
+        "token_issued": true
+      },
+      "events": [
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.657,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "challenge",
+          "sequence": 1,
+          "status": 401
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 8.376,
+          "method": "GET",
+          "path": "/.well-known/oauth-protected-resource/mcp",
+          "reason": "discovery",
+          "sequence": 2,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 8.748,
+          "method": "GET",
+          "path": "/.well-known/oauth-authorization-server",
+          "reason": "discovery",
+          "sequence": 3,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 9.167,
+          "method": "POST",
+          "path": "/oauth/register",
+          "reason": "registered",
+          "sequence": 4,
+          "status": 201
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 9.64,
+          "method": "GET",
+          "path": "/oauth/authorize",
+          "reason": "authorized",
+          "sequence": 5,
+          "status": 302
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 10.02,
+          "method": "POST",
+          "path": "/oauth/token",
+          "reason": "token_issued",
+          "sequence": 6,
+          "status": 200
+        },
+        {
+          "authorization_present": true,
+          "elapsed_ms": 10.381,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "initialized",
+          "sequence": 7,
+          "status": 200
+        },
+        {
+          "authorization_present": true,
+          "elapsed_ms": 10.694,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "notification",
+          "sequence": 8,
+          "status": 202
+        },
+        {
+          "authorization_present": true,
+          "elapsed_ms": 10.993,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "tools_listed",
+          "sequence": 9,
+          "status": 200
+        },
+        {
+          "authorization_present": true,
+          "elapsed_ms": 11.289,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "echo",
+          "sequence": 10,
+          "status": 200
+        }
+      ],
+      "failure_to_diagnosis_ms": null,
+      "matches_expectation": true
+    },
+    {
+      "case": "missing_bearer",
+      "diagnosis": {
+        "boundary": "POST /mcp",
+        "detected_at_ms": 7.686,
+        "reason": "missing_authorization",
+        "token_issued": true
+      },
+      "events": [
+        {
+          "authorization_present": false,
+          "elapsed_ms": 5.814,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "challenge",
+          "sequence": 1,
+          "status": 401
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.139,
+          "method": "GET",
+          "path": "/.well-known/oauth-protected-resource/mcp",
+          "reason": "discovery",
+          "sequence": 2,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.453,
+          "method": "GET",
+          "path": "/.well-known/oauth-authorization-server",
+          "reason": "discovery",
+          "sequence": 3,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.757,
+          "method": "POST",
+          "path": "/oauth/register",
+          "reason": "registered",
+          "sequence": 4,
+          "status": 201
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.055,
+          "method": "GET",
+          "path": "/oauth/authorize",
+          "reason": "authorized",
+          "sequence": 5,
+          "status": 302
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.391,
+          "method": "POST",
+          "path": "/oauth/token",
+          "reason": "token_issued",
+          "sequence": 6,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.686,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "missing_authorization",
+          "sequence": 7,
+          "status": 401
+        }
+      ],
+      "failure_to_diagnosis_ms": 0.015,
+      "matches_expectation": true
+    },
+    {
+      "case": "invalid_bearer",
+      "diagnosis": {
+        "boundary": "POST /mcp",
+        "detected_at_ms": 7.701,
+        "reason": "invalid_token",
+        "token_issued": true
+      },
+      "events": [
+        {
+          "authorization_present": false,
+          "elapsed_ms": 5.869,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "challenge",
+          "sequence": 1,
+          "status": 401
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.167,
+          "method": "GET",
+          "path": "/.well-known/oauth-protected-resource/mcp",
+          "reason": "discovery",
+          "sequence": 2,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.457,
+          "method": "GET",
+          "path": "/.well-known/oauth-authorization-server",
+          "reason": "discovery",
+          "sequence": 3,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.744,
+          "method": "POST",
+          "path": "/oauth/register",
+          "reason": "registered",
+          "sequence": 4,
+          "status": 201
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.053,
+          "method": "GET",
+          "path": "/oauth/authorize",
+          "reason": "authorized",
+          "sequence": 5,
+          "status": 302
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.388,
+          "method": "POST",
+          "path": "/oauth/token",
+          "reason": "token_issued",
+          "sequence": 6,
+          "status": 200
+        },
+        {
+          "authorization_present": true,
+          "elapsed_ms": 7.701,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "invalid_token",
+          "sequence": 7,
+          "status": 401
+        }
+      ],
+      "failure_to_diagnosis_ms": 0.022,
+      "matches_expectation": true
+    },
+    {
+      "case": "expired_token",
+      "diagnosis": {
+        "boundary": "POST /mcp",
+        "detected_at_ms": 8.584,
+        "reason": "expired_token",
+        "token_issued": true
+      },
+      "events": [
+        {
+          "authorization_present": false,
+          "elapsed_ms": 5.128,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "challenge",
+          "sequence": 1,
+          "status": 401
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 5.48,
+          "method": "GET",
+          "path": "/.well-known/oauth-protected-resource/mcp",
+          "reason": "discovery",
+          "sequence": 2,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 5.785,
+          "method": "GET",
+          "path": "/.well-known/oauth-authorization-server",
+          "reason": "discovery",
+          "sequence": 3,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.435,
+          "method": "POST",
+          "path": "/oauth/register",
+          "reason": "registered",
+          "sequence": 4,
+          "status": 201
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.858,
+          "method": "GET",
+          "path": "/oauth/authorize",
+          "reason": "authorized",
+          "sequence": 5,
+          "status": 302
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 8.213,
+          "method": "POST",
+          "path": "/oauth/token",
+          "reason": "token_issued",
+          "sequence": 6,
+          "status": 200
+        },
+        {
+          "authorization_present": true,
+          "elapsed_ms": 8.584,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "expired_token",
+          "sequence": 7,
+          "status": 401
+        }
+      ],
+      "failure_to_diagnosis_ms": 0.021,
+      "matches_expectation": true
+    },
+    {
+      "case": "insufficient_scope",
+      "diagnosis": {
+        "boundary": "POST /mcp",
+        "detected_at_ms": 7.672,
+        "reason": "insufficient_scope",
+        "token_issued": true
+      },
+      "events": [
+        {
+          "authorization_present": false,
+          "elapsed_ms": 5.263,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "challenge",
+          "sequence": 1,
+          "status": 401
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 5.644,
+          "method": "GET",
+          "path": "/.well-known/oauth-protected-resource/mcp",
+          "reason": "discovery",
+          "sequence": 2,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.381,
+          "method": "GET",
+          "path": "/.well-known/oauth-authorization-server",
+          "reason": "discovery",
+          "sequence": 3,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.734,
+          "method": "POST",
+          "path": "/oauth/register",
+          "reason": "registered",
+          "sequence": 4,
+          "status": 201
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.043,
+          "method": "GET",
+          "path": "/oauth/authorize",
+          "reason": "authorized",
+          "sequence": 5,
+          "status": 302
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.411,
+          "method": "POST",
+          "path": "/oauth/token",
+          "reason": "token_issued",
+          "sequence": 6,
+          "status": 200
+        },
+        {
+          "authorization_present": true,
+          "elapsed_ms": 7.672,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "insufficient_scope",
+          "sequence": 7,
+          "status": 403
+        }
+      ],
+      "failure_to_diagnosis_ms": 0.02,
+      "matches_expectation": true
+    },
+    {
+      "case": "pkce_mismatch",
+      "diagnosis": {
+        "boundary": "POST /oauth/token",
+        "detected_at_ms": 7.707,
+        "reason": "pkce_mismatch",
+        "token_issued": false
+      },
+      "events": [
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.027,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "challenge",
+          "sequence": 1,
+          "status": 401
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.395,
+          "method": "GET",
+          "path": "/.well-known/oauth-protected-resource/mcp",
+          "reason": "discovery",
+          "sequence": 2,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.699,
+          "method": "GET",
+          "path": "/.well-known/oauth-authorization-server",
+          "reason": "discovery",
+          "sequence": 3,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.001,
+          "method": "POST",
+          "path": "/oauth/register",
+          "reason": "registered",
+          "sequence": 4,
+          "status": 201
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.332,
+          "method": "GET",
+          "path": "/oauth/authorize",
+          "reason": "authorized",
+          "sequence": 5,
+          "status": 302
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.707,
+          "method": "POST",
+          "path": "/oauth/token",
+          "reason": "pkce_mismatch",
+          "sequence": 6,
+          "status": 400
+        }
+      ],
+      "failure_to_diagnosis_ms": 0.019,
+      "matches_expectation": true
+    },
+    {
+      "case": "resource_mismatch",
+      "diagnosis": {
+        "boundary": "POST /oauth/token",
+        "detected_at_ms": 7.378,
+        "reason": "resource_mismatch",
+        "token_issued": false
+      },
+      "events": [
+        {
+          "authorization_present": false,
+          "elapsed_ms": 5.792,
+          "method": "POST",
+          "path": "/mcp",
+          "reason": "challenge",
+          "sequence": 1,
+          "status": 401
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.139,
+          "method": "GET",
+          "path": "/.well-known/oauth-protected-resource/mcp",
+          "reason": "discovery",
+          "sequence": 2,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.425,
+          "method": "GET",
+          "path": "/.well-known/oauth-authorization-server",
+          "reason": "discovery",
+          "sequence": 3,
+          "status": 200
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 6.737,
+          "method": "POST",
+          "path": "/oauth/register",
+          "reason": "registered",
+          "sequence": 4,
+          "status": 201
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.037,
+          "method": "GET",
+          "path": "/oauth/authorize",
+          "reason": "authorized",
+          "sequence": 5,
+          "status": 302
+        },
+        {
+          "authorization_present": false,
+          "elapsed_ms": 7.378,
+          "method": "POST",
+          "path": "/oauth/token",
+          "reason": "resource_mismatch",
+          "sequence": 6,
+          "status": 400
+        }
+      ],
+      "failure_to_diagnosis_ms": 0.014,
+      "matches_expectation": true
+    }
+  ],
+  "schema_version": 1,
+  "source": "https://github.com/postmanlabs/postman-app-support/issues/14119"
+}
