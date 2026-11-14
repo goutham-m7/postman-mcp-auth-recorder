@@ -1,6 +1,15 @@
 # MCP Auth Flight Recorder
 
-OAuth can succeed while the next MCP request carries no bearer. For engineers debugging that boundary, [Postman issue #14119](https://github.com/postmanlabs/postman-app-support/issues/14119) provides a concrete user report: token exchange returns 200, then initialize gets 401. This project reproduces **that wire symptom with a synthetic client**, not a verified Postman desktop regression or a proprietary app patch.
+A token-safe local flight recorder for the OAuth-to-MCP request boundary.
+
+## The problem
+
+Developers connecting protected MCP tools can complete login yet still get an unauthorized connection: receiving a token and attaching it to the next request are different steps.
+
+- [Postman issue #14119](https://github.com/postmanlabs/postman-app-support/issues/14119) (opened 2026-05-05; **2 comments**, checked 2026-11-14) reports a successful token exchange followed by an MCP initialize request without its bearer header and a 401 response. A later comment undermines the author's initial version bisect, so this is a user-reported symptom, not a confirmed regression diagnosis.
+- [The MCP authorization specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization) (2025-06-18) requires authorization on every HTTP request, even within one logical session, and distinguishes invalid-token 401 responses from insufficient-permission 403 responses.
+
+This recorder reproduces that wire symptom with a synthetic local OAuth/MCP client and exports an allowlisted handshake timeline locating the failed boundary without exporting raw credentials; it does not verify or patch Postman's native desktop client.
 
 ```sh
 make demo
